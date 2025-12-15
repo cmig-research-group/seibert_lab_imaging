@@ -1,0 +1,38 @@
+# Quality of life stuff
+umask 002
+setenv LANG en_US.UTF-8
+set prompt = '[%n@%m %c]%# '
+
+alias egrep 'egrep --color=auto'
+alias fgrep 'fgrep --color=auto'
+alias grep 'grep --color=auto'
+alias l. 'ls -d .* --color=auto'
+alias ll 'ls -l --color=auto'
+alias ls 'ls --color=auto'
+
+# Include paths to necessary software
+setenv PATH $PATH\:/usr/pubsw/packages/matlab/R2022a/bin
+setenv PATH $PATH\:/usr/pubsw/packages/singularity/bin
+
+# Freesurfer
+setenv PATH $PATH\:/usr/pubsw/packages/freesurfer/RH4-x86_64-R711
+setenv PATH $PATH\:/usr/pubsw/packages/freesurfer/RH4-x86_64-R711/bin
+setenv PATH $PATH\:/usr/pubsw/packages/freesurfer/RH4-x86_64-R711/fsfast/bin
+setenv PATH $PATH\:/usr/pubsw/packages/freesurfer/RH4-x86_64-R711/mni/bin
+setenv FREESURFER_HOME /usr/pubsw/packages/freesurfer/RH4-x86_64-R711
+
+# FSL
+setenv FSLDIR /usr/pubsw/packages/fsl/fsl-5.0.2.2-centos6_64
+setenv PATH $PATH\:$FSLDIR/share/fsl/bin
+
+# dcmtk
+setenv PATH $PATH\:/usr/pubsw/packages/dcmtk/3.6.0/bin
+setenv DCMDICTPATH /usr/pubsw/packages/dcmtk/3.6.0/share/dcmtk/dicom.dic
+alias dcmodify '/usr/pubsw/packages/dcmtk/3.6.0/bin/dcmodify'
+alias dcmdump '/usr/pubsw/packages/dcmtk/3.6.0/bin/dcmdump'
+
+# MMPS
+setenv PUBSW /usr/pubsw
+source $FREESURFER_HOME/SetUpFreeSurfer.csh >/dev/null && \
+source $FSLDIR/etc/fslconf/fsl.csh >/dev/null && \
+source $PUBSW/bin/SetUpMMPS.csh DEV
