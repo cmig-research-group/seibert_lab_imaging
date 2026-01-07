@@ -90,7 +90,7 @@ showVol(vol_aseg_rgb,vol_fiber_rgb,vol_rgb,vol_prerend,vols_logp_rgb(1,:))
 
 % Test mmil_dct_brainmask_amd
 
-meanvol_T1_ctx = ctx_mgh2ctx(meanvol_T1,M_atl);
+meanvol_T1_ctx = mgh2ctx(meanvol_T1,M_atl);
 
 [brainmask_ctx,M_Atl_to_Subj,regStruct] = mmil_dct_brainmask_amd(meanvol_T1_ctx);
 

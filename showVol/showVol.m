@@ -430,7 +430,7 @@ for iii = 1:length(args)
   else
     for vi = 1:size(v,4)
       handles.numVols = handles.numVols + 1;
-      handles.vols{handles.numVols} = ctx_mgh2ctx(v(:,:,:,vi));
+      handles.vols{handles.numVols} = mgh2ctx(v(:,:,:,vi));
     end
   end
 end
