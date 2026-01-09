@@ -15,6 +15,7 @@ my @dcm_keys = (
     '(0010,0010)', # PatientName
     '(0010,0020)', # PatientID
     '(0010,0030)', # PatientBirthDate
+    '(0010,0032)', # PatientBirthTime
     '(0008,0020)', # StudyDate
     '(0008,0021)', # SeriesDate
     '(0008,0030)', # StudyTime
