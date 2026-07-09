@@ -6,12 +6,11 @@
 use warnings;
 use strict;
 
-my $dcm_ID = $ARGV[0];
-my $tag_ID = $ARGV[1];
-my $tag_value = $ARGV[2];
-my $path = $ARGV[3];
+my $tag_ID = $ARGV[0];
+my $tag_value = $ARGV[1];
+my $path = $ARGV[2];
 
-change_tag( $dcm_ID, $tag_ID, $tag_value, $path );
+change_tag( $tag_ID, $tag_value, $path );
 
 
 ####################################
@@ -19,7 +18,6 @@ change_tag( $dcm_ID, $tag_ID, $tag_value, $path );
 ####################################
 sub change_tag {
 
-        my $dcm_ID = shift;
 	my $tag_ID = shift;
 	my $tag_value = shift;
 	my $path = shift;
@@ -40,17 +38,13 @@ sub change_tag {
 
 		# Recursively access directories
 		if (-d $thing_path) {
-		        change_tag( $dcm_ID, $tag_ID, $tag_value, $thing_path );
+		        change_tag( $tag_ID, $tag_value, $thing_path );
 		} 
-		# If file is DICOM, change the specified tag
-		elsif ($thing =~ /$dcm_ID/) {
+		# Change the specified tag
+		else {
 			my $cmd = 'dcmodify -q -nb -imt -m "' . $tag_ID . '"="' . $tag_value . '" ' . '"' . $thing_path . '"';
 			system($cmd);
  		}
-		# If file is not a DICOM, skip it
-		else {
-			next;
-		}
 		
 	}
 }

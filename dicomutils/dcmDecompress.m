@@ -17,7 +17,7 @@ for i = 1:num_files
 
       dcmdata = dicomread(fname);
       dcminfo.TransferSyntaxUID = '1.2.840.10008.1.2.1';
-      dicomwrite(dcmdata, fname, dcminfo);
+      dicomwrite(dcmdata, fname, dcminfo, 'CreateMode', 'Copy');
 
       fprintf('%d/%d\n', i, num_files);
 
