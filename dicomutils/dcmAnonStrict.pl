@@ -3,13 +3,12 @@
 # Strictly anonymize directory of DICOM files
 # Deletes, rather than hashes, patient and exam info, to make files suitable for distribution 
 #
-# Usage: $ perl dcmAnonStrict.pl <DICOM_file_identifier> <path_to_directory_containing_DICOM_files>
+# Usage: $ perl dcmAnonStrict.pl <path_to_directory_containing_DICOM_files>
 
 use warnings;
 use strict;
 
-my $dcm_ID = $ARGV[0];
-my $path = $ARGV[1];
+my $path = $ARGV[0];
 
 my @dcm_keys = (
     '(0010,0010)', # PatientName
@@ -69,7 +68,7 @@ my @dcm_keys = (
     '(0033,1013)',
     '(0009,1101)');
 
-anonymize_files( $path, $dcm_ID,  @dcm_keys );
+anonymize_files( $path, @dcm_keys );
 
 
 ##################################
@@ -78,7 +77,6 @@ anonymize_files( $path, $dcm_ID,  @dcm_keys );
 sub anonymize_files {
 
     my $path = shift;
-    my $dcm_ID = shift;
     my @dcm_keys = @_;
 
     opendir(DIR, $path) || die "Error: Could not open $path: $! \n\n";
@@ -96,25 +94,20 @@ sub anonymize_files {
 
 	# Recursively access directories
 	if (-d $thing_path) {
-	    anonymize_files( $thing_path, $dcm_ID, @dcm_keys );
+	    anonymize_files( $thing_path, @dcm_keys );
 	} 
 
-	# If file is DICOM, anonymize it
-	elsif ($thing =~ /$dcm_ID/) {
+	# Anonymize all DICOM files in directory 
+	else {
 	    
 	    foreach my $key (@dcm_keys) {
-		my $cmd = 'dcmodify -q -nb -imt -e "' . $key . '" ' . "\'" . $path . "\'" . "/*$dcm_ID*";
+		my $cmd = 'dcmodify -q -nb -imt -e "' . $key . '" ' . "\'" . $path . "\'" . "/*";
 		print("$cmd\n");
 		system($cmd);
 	    }
 	    
 	    return;
 	    
-	}
-	
-	# If file is not a DICOM, skip it
-	else {
-	    print "$thing not recognized as DICOM; skipping... \n";
 	}
 	
     }
