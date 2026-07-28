@@ -1,12 +1,8 @@
 #!/usr/bin/perl
 
-# DEPRECATED: This tool is being deprecated in favor of dcmAnon.pl
-# Anonymize directory of DICOM files FOR A SINGLE PATIENT.
-# There better not be multiple subjects in the directory.
-# There better not be any spaces in the DICOM file name.
-# This script only hashes the MRN once, and uses it for all files in the directory.
+# Anonymize directory of DICOM files.
 # 
-# Usage: $ perl dcmAnonQuick.pl <DICOM_file_identifier> <new_patient_name> <path_to_directory>
+# Usage: $ perl dcmAnon.pl <new_patient_name> <path_to_directory>
 # If you want to use a hashed MRN for the new patient name, use "-h" for new_patient_name
 
 use warnings;
@@ -15,9 +11,8 @@ use strict;
 # Import Digest module for hashing MRNs
 use Digest::MD5 qw(md5_hex);
 
-my $dcm_ID = $ARGV[0];
-my $new_patient_name = $ARGV[1];
-my $path = $ARGV[2];
+my $new_patient_name = $ARGV[0];
+my $path = $ARGV[1];
 
 my @dcm_keys = (
     '(0038,0010)', # AdmissionID
@@ -60,7 +55,7 @@ my @dcm_keys = (
     '(0033,1013)',
     '(0009,1101)');
 
-anonymize_files( $path, $dcm_ID, $new_patient_name, '', @dcm_keys );
+anonymize_files( $path, $new_patient_name, @dcm_keys );
 
 
 ##################################
@@ -69,9 +64,7 @@ anonymize_files( $path, $dcm_ID, $new_patient_name, '', @dcm_keys );
 sub anonymize_files {
 
     my $path = shift;
-    my $dcm_ID = shift;
     my $new_patient_name = shift;
-    my $hash_ID = shift;
     my @dcm_keys = @_;
 
     opendir(DIR, $path) || die "Error: Could not open $path: $! \n\n";
@@ -89,64 +82,57 @@ sub anonymize_files {
 
 	# Recursively access directories
 	if (-d $thing_path) {
-	    anonymize_files( $thing_path, $dcm_ID, $new_patient_name, $hash_ID, @dcm_keys );
+	    anonymize_files( $thing_path, $new_patient_name, @dcm_keys );
 	} 
 
-	# If file is DICOM, anonymize it
-	elsif ($thing =~ /$dcm_ID/) {
+	# Anonymize all DICOM files in directory
+	else {
 	    
 	    foreach my $key (@dcm_keys) {
-		my $cmd = 'dcmodify -q -nb -imt -e "' . $key . '" ' . "\'" . $path . "\'" . "/*$dcm_ID*";
+		my $cmd = 'dcmodify -q -nb -imt -e "' . $key . '" ' . "\'" . $path . "\'" . "/*";
 		print("$cmd\n");
 		system($cmd);
 	    }
 	    
-	    if ($hash_ID eq '') {
-		$hash_ID = get_hash_ID($thing_path);
-	    }
+	    my $hash_ID = get_hash_ID($thing_path);
 
 	    # Patient ID
-	    my $cmd2 = 'dcmodify -q -nb -imt -m "(0010,0020)"="' . $hash_ID . '" ' . "\'" . $path . "\'" . "/*$dcm_ID*";
+	    my $cmd2 = 'dcmodify -q -nb -imt -m "(0010,0020)"="' . $hash_ID . '" ' . "\'" . $path . "\'" . "/*";
 	    print("$cmd2\n");
 	    system($cmd2);
 
 	    # Patient name
 	    if ($new_patient_name eq '-h') {
-		my $cmd3 = 'dcmodify -q -nb -imt -m "(0010,0010)"="' . $hash_ID . '" ' . "\'" . $path . "\'" . "/*$dcm_ID*";
+		my $cmd3 = 'dcmodify -q -nb -imt -m "(0010,0010)"="' . $hash_ID . '" ' . "\'" . $path . "\'" . "/*";
 		print("$cmd3\n");
 		system($cmd3);	
 	    }
 	    else { 
-		my $cmd3 = 'dcmodify -q -nb -imt -m "(0010,0010)"="' . $new_patient_name . '" ' . "\'" . $path . "\'" . "/*$dcm_ID*";
+		my $cmd3 = 'dcmodify -q -nb -imt -m "(0010,0010)"="' . $new_patient_name . '" ' . "\'" . $path . "\'" . "/*";
 		print("$cmd3\n");
 		system($cmd3);
 	    }
 
 	    # Patient birth date
-	    my $cmd4 = 'dcmodify -q -nb -imt -m "(0010,0030)"="" ' . "\'" . $path . "\'" . "/*$dcm_ID*";
+	    my $cmd4 = 'dcmodify -q -nb -imt -m "(0010,0030)"="" ' . "\'" . $path . "\'" . "/*";
 	    print("$cmd4\n");
 	    system($cmd4);
 
 	    # Referring physician name
-	    my $cmd5 = 'dcmodify -q -nb -imt -m "(0008,0090)"="cleared^cleared" ' . "\'" . $path . "\'" . "/*$dcm_ID*";
+	    my $cmd5 = 'dcmodify -q -nb -imt -m "(0008,0090)"="cleared^cleared" ' . "\'" . $path . "\'" . "/*";
             print("$cmd5\n");
             system($cmd5);
 
 	    # Accession number
 	    my $trunc = substr($hash_ID, 0, 16);
-            my $cmd6 = 'dcmodify -q -nb -imt -m "(0008,0050)"="' . $trunc . '" ' . "\'" . $path . "\'" . "/*$dcm_ID*";
+            my $cmd6 = 'dcmodify -q -nb -imt -m "(0008,0050)"="' . $trunc . '" ' . "\'" . $path . "\'" . "/*";
             print("$cmd6\n");
             system($cmd6);
 	    
 	    return;
 	    
 	}
-	
-	# If file is not a DICOM, skip it
-	else {
-	    print "$thing not recognized as DICOM; skipping... \n";
-	}
-	
+		
     }
 } 
 
