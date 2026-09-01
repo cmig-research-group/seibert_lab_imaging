@@ -62,6 +62,7 @@ my @dcm_keys = (
     '(0010,1005)', # PatientBirthName
     '(0010,1060)', # PatientMotherBirthName
     '(0010,21f0)', # PatientReligiousPreference
+    '(0010,0050)', # PatientInsurancePlanCodeSequence
     '(0038,0011)',
     '(0400,0561)',
     '(0023,1080)',

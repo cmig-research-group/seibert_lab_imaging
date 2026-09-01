@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 
 # Change DICOM tag value for every DICOM file in a directory. 
-# Usage: $ perl dcmChangeTag.pl <DICOM_file_identifier> <DICOM_tag_to_change> <new_DICOM_tag_value> <path_to_directory>
+# Usage: $ perl dcmChangeTag.pl <DICOM_tag_to_change> <new_DICOM_tag_value> <path_to_directory>
 
 use warnings;
 use strict;

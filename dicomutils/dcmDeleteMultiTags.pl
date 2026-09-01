@@ -1,18 +1,13 @@
 #!/usr/bin/perl
 
-# Anonymize directory of DICOM files.
+# Delete a list of tags from a directory of DICOM files.
 # 
-# Usage: $ perl dcmAnon.pl <new_patient_name> <path_to_directory>
-# If you want to use a hashed MRN for the new patient name, use "-h" for new_patient_name
+# Usage: $ perl dcmDeleteMultiTags.pl <path_to_directory>
 
 use warnings;
 use strict;
 
-# Import Digest module for hashing MRNs
-use Digest::MD5 qw(md5_hex);
-
-my $new_patient_name = $ARGV[0];
-my $path = $ARGV[1];
+my $path = $ARGV[0];
 
 my @dcm_keys = (
     '(0038,0010)', # AdmissionID
@@ -56,7 +51,7 @@ my @dcm_keys = (
     '(0033,1013)',
     '(0009,1101)');
 
-anonymize_files( $path, $new_patient_name, @dcm_keys );
+anonymize_files( $path, @dcm_keys );
 
 
 ##################################
@@ -65,7 +60,6 @@ anonymize_files( $path, $new_patient_name, @dcm_keys );
 sub anonymize_files {
 
     my $path = shift;
-    my $new_patient_name = shift;
     my @dcm_keys = @_;
 
     opendir(DIR, $path) || die "Error: Could not open $path: $! \n\n";
@@ -83,7 +77,7 @@ sub anonymize_files {
 
 	# Recursively access directories
 	if (-d $thing_path) {
-	    anonymize_files( $thing_path, $new_patient_name, @dcm_keys );
+	    anonymize_files( $thing_path, @dcm_keys );
 	} 
 
 	# Anonymize all DICOM files in directory
@@ -95,41 +89,6 @@ sub anonymize_files {
 		system($cmd);
 	    }
 	    
-	    my $hash_ID = get_hash_ID($thing_path);
-
-	    # Patient ID
-	    my $cmd2 = 'dcmodify -q -nb -imt -m "(0010,0020)"="' . $hash_ID . '" ' . "\'" . $path . "\'" . "/*";
-	    print("$cmd2\n");
-	    system($cmd2);
-
-	    # Patient name
-	    if ($new_patient_name eq '-h') {
-		my $cmd3 = 'dcmodify -q -nb -imt -m "(0010,0010)"="' . $hash_ID . '" ' . "\'" . $path . "\'" . "/*";
-		print("$cmd3\n");
-		system($cmd3);	
-	    }
-	    else { 
-		my $cmd3 = 'dcmodify -q -nb -imt -m "(0010,0010)"="' . $new_patient_name . '" ' . "\'" . $path . "\'" . "/*";
-		print("$cmd3\n");
-		system($cmd3);
-	    }
-
-	    # Patient birth date
-	    my $cmd4 = 'dcmodify -q -nb -imt -m "(0010,0030)"="" ' . "\'" . $path . "\'" . "/*";
-	    print("$cmd4\n");
-	    system($cmd4);
-
-	    # Referring physician name
-	    my $cmd5 = 'dcmodify -q -nb -imt -m "(0008,0090)"="cleared^cleared" ' . "\'" . $path . "\'" . "/*";
-            print("$cmd5\n");
-            system($cmd5);
-
-	    # Accession number
-	    my $trunc = substr($hash_ID, 0, 16);
-            my $cmd6 = 'dcmodify -q -nb -imt -m "(0008,0050)"="' . $trunc . '" ' . "\'" . $path . "\'" . "/*";
-            print("$cmd6\n");
-            system($cmd6);
-	    
 	    return;
 	    
 	}
@@ -137,16 +96,3 @@ sub anonymize_files {
     }
 } 
 
-
-####################################
-# Function for hashing patient MRNs
-####################################
-sub get_hash_ID {
-
-    my $thing_path = shift;
-    my $text_dump = `dcmdump +P "PatientID" "$thing_path"`;
-    my ($mrn) = $text_dump =~ m/ \[ (\w+) \] /x;
-    my $hash = md5_hex($mrn);
-    return $hash;
-
-}
